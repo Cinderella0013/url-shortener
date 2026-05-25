@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบสร้างเว็บย่อ URL</title>
+    <style>
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background-color: #f4f7f6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container { 
+            background: white;
+            padding: 30px; 
+            border-radius: 10px; 
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+        input { 
+            width: 90%; 
+            padding: 12px; 
+            margin: 10px 0; 
+            border: 1px solid #ccc; 
+            border-radius: 5px; 
+        }
+        button { 
+            width: 96%; 
+            padding: 12px; 
+            background-color: #007bff; 
+            color: white; 
+            border: none; 
+            border-radius: 5px; 
+            cursor: pointer; 
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #result { 
+            margin-top: 20px; 
+            font-size: 16px;
+        }
+        .error { color: red; }
+        .success { color: green; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>ย่อ URL ของคุณ</h2>
+        <input type="url" id="originalUrl" placeholder="ระบุ URL ต้นฉบับ (เช่น https://...)" required>
+        <input type="text" id="customCode" placeholder="กำหนดชื่อลิงก์เอง (เว้นว่างเพื่อสุ่ม)">
+        <button onclick="shortenUrl()">สร้าง URL ย่อ</button>
+
+        <div id="result"></div>
+    </div>
+
+    <script>
+        async function shortenUrl() {
+            const originalUrl = document.getElementById('originalUrl').value;
+            const customCode = document.getElementById('customCode').value;
+            const resultDiv = document.getElementById('result');
+
+            if(!originalUrl) {
+                resultDiv.innerHTML = '<span class="error">กรุณากรอก URL ต้นฉบับก่อนครับ</span>';
+                return;
+            }
+
+            resultDiv.innerHTML = 'กำลังประมวลผล...';
+
+            try {
+                const response = await fetch('/api/shorten', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ originalUrl, customCode })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    resultDiv.innerHTML = `<span class="success">URL ย่อของคุณคือ:</span><br>
+                    <a href="${data.shortUrl}" target="_blank">${data.shortUrl}</a>`;
+                } else {
+                    resultDiv.innerHTML = `<span class="error">ข้อผิดพลาด: ${data.error}</span>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<span class="error">เกิดข้อผิดพลาดในการเชื่อมต่อกับเซิร์ฟเวอร์</span>`;
+            }
+        }
+    </script>
+</body>
+</html> 
